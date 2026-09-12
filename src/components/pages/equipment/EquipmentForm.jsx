@@ -330,7 +330,7 @@ const EquipmentForm = ({equip, equipmentList, setEquipmentList, mode, maintenanc
                             <InputErrorMessage
                                 hasError={mode ==="add" && hasErrors && data.category ===''}
                                 msg={errorMessage['categoryRequired']}
-                            />
+                            /> 
                         </FormItem>
                         <FormItem>
                             <Select
