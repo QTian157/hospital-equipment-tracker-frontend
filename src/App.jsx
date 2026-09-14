@@ -14,6 +14,10 @@ import EquipmentAddPage from './components/pages/equipment/EquipmentAddPage'
 
 import Equipment from './classes/Equipment';
 import MaintenanceRecord from './classes/MaintenanceRecord';
+import ProtectedRoute from './auth/ProtectedRoute'
+
+import LoginPage from './components/pages/auth/LoginPage'
+import RegisterPage from './components/pages/auth/RegisterPage'
 
 
 const parseJSONText = (rawText, dataName) => {
@@ -137,83 +141,97 @@ function App() {
 
 
   return (
-    <div id="body-container">
-      <Header />
+    <Routes>
 
-      <div className="page-container">
-        <Sidebar />
-        
-        <Routes>
-          <Route 
-            path="/" 
-            element={ 
-              <DashboardPage 
-                equipmentList={equipmentList}
-                isLoading={isLoading} 
-                equipListError={equipListError}
-              />}
-          />
-          <Route 
-            path="/equipmentList" 
-            element={
-              <EquipmentListPage 
-                equipmentList={equipmentList} 
-                isLoading={isLoading} 
-                equipListError={equipListError}
-              />
-            }
-          />
-          <Route path="/about" element={ <AboutPage />}/>
-          <Route 
-            path="/equipment/details/:id" 
-            element={
-              <EquipmentDetailPage 
-                equipmentList={equipmentList}
-                isLoading={isLoading}
-                equipListError={equipListError}
-                setEquipmentList={setEquipmentList}
-                maintenanceRecords={maintenanceRecords}
-                setMaintenanceRecords={setMaintenanceRecords}
-                maintenanceError={maintenanceError}
-              />
-            } 
-          />
-          <Route 
-            path="/equipment/details/:id/edit" 
-            element={
-              <EquipmentEditPage 
-                equipmentList={equipmentList}
-                isLoading={isLoading}
-                equipListError={equipListError}
-                setEquipmentList={setEquipmentList}
-                maintenanceRecords={maintenanceRecords}
-                setMaintenanceRecords={setMaintenanceRecords}
-              />
-              
-            } 
-          
-          />
+      {/* Public routes */}
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-          <Route 
-            path="/equipment/add" 
-            element={
-              <EquipmentAddPage 
-                equipmentList={equipmentList}
-                isLoading={isLoading}
-                equipListError={equipListError}
-                setEquipmentList={setEquipmentList}
-              />
-              
-            } 
-          
-          />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+      <Route 
+        path="/*"
+        element={
+          <ProtectedRoute>
+            <div id="body-container">
+              <Header />
+
+              <div className="page-container">
+                <Sidebar />
+                
+                <Routes>
+                  <Route 
+                    path="/" 
+                    element={ 
+                      <DashboardPage 
+                        equipmentList={equipmentList}
+                        isLoading={isLoading} 
+                        equipListError={equipListError}
+                      />}
+                  />
+                  <Route 
+                    path="/equipmentList" 
+                    element={
+                      <EquipmentListPage 
+                        equipmentList={equipmentList} 
+                        isLoading={isLoading} 
+                        equipListError={equipListError}
+                      />
+                    }
+                  />
+                  <Route path="/about" element={ <AboutPage />}/>
+                  <Route 
+                    path="/equipment/details/:id" 
+                    element={
+                      <EquipmentDetailPage 
+                        equipmentList={equipmentList}
+                        isLoading={isLoading}
+                        equipListError={equipListError}
+                        setEquipmentList={setEquipmentList}
+                        maintenanceRecords={maintenanceRecords}
+                        setMaintenanceRecords={setMaintenanceRecords}
+                        maintenanceError={maintenanceError}
+                      />
+                    } 
+                  />
+                  <Route 
+                    path="/equipment/details/:id/edit" 
+                    element={
+                      <EquipmentEditPage 
+                        equipmentList={equipmentList}
+                        isLoading={isLoading}
+                        equipListError={equipListError}
+                        setEquipmentList={setEquipmentList}
+                        maintenanceRecords={maintenanceRecords}
+                        setMaintenanceRecords={setMaintenanceRecords}
+                      />
+                      
+                    } 
+                  
+                  />
+
+                  <Route 
+                    path="/equipment/add" 
+                    element={
+                      <EquipmentAddPage 
+                        equipmentList={equipmentList}
+                        isLoading={isLoading}
+                        equipListError={equipListError}
+                        setEquipmentList={setEquipmentList}
+                      />
+                      
+                    } 
+                  
+                  />
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
 
 
-      </div>
-      <Footer />
-    </div>
+              </div>
+              <Footer />
+            </div>
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
   )
 }
 
