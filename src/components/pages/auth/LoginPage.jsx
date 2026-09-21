@@ -66,8 +66,8 @@ const LoginPage = () => {
             login(responseData.token);
             navigate("/");
 
-        }catch(error){
-            setError(error.message);
+        }catch(err){
+            setError(err.message);
         }finally{
             setIsLoading(false);
         }
@@ -95,6 +95,7 @@ const LoginPage = () => {
                 <FormItem>
                     <Input 
                         id="password"
+                        type="password"
                         label="Password:"
                         value={data.password}
                         required={true}
@@ -105,6 +106,7 @@ const LoginPage = () => {
                         msg={errorMessage['passwordRequired']}
                     />
                 </FormItem>
+                {error && <div>{error}</div>}
                 <Button 
                     id = "login"
                     label={isLoading ? "Logging in..." : "Log in"}

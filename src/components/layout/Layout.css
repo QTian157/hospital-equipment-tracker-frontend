@@ -59,3 +59,9 @@ aside {
         display: block;
     }
 }
+
+.tracker{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
