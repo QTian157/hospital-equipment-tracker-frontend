@@ -2,16 +2,21 @@ import { useNavigate, useParams } from 'react-router';
 import ErrorPage from '../ErrorPage';
 import GoBack from '../../common/GoBack';
 import LoadingPage from '../LoadingPage';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EquipDeleteConfirmation from './EquipDeleteConfirmation.jsx'
 
 import Button from '../../forms/inputs/Button.jsx'
 import equipmentImages from "../../../mockData/equipmentImages.js";
 
+import { apiFetch } from "../../../api/apiClient";
 
-const EquipmentDetailPage = ({equipmentList, isLoading, equipListError, setEquipmentList, maintenanceRecords,maintenanceError})=>{
+
+const EquipmentDetailPage = ({equipmentList, setEquipmentList, maintenanceRecords,maintenanceError})=>{
 
     const {id} = useParams();
+    const [equip, setEquip] = useState(null);
+    const [detailLoading, setDetailLoading] = useState(true);
+    const [detailError, setDetailError] = useState(null);
 
     const navigate = useNavigate();
 
@@ -31,15 +36,43 @@ const EquipmentDetailPage = ({equipmentList, isLoading, equipListError, setEquip
     }
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+    useEffect(() => {
+        const fetchEquipmentDetail = async () => {
+            try {
+                const response = await apiFetch(`/api/equipment/${id}`);
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Unable to retrieve equipment detail (status ${response.status}).`
+                    );
+                }
+
+                const result = await response.json();
+
+                setEquip(result.data);
+                setDetailError(null);
+
+            } catch (error) {
+                console.error(error.message);
+                setDetailError(error.message);
+
+            } finally {
+                setDetailLoading(false);
+            }
+        };
+
+        fetchEquipmentDetail();
+    }, [id]);
     
 
-    if (isLoading){
+    if (detailLoading){
         return (<LoadingPage dataName={'equipmentDetail'}/>)
-    }else if(equipListError){
+    }else if(detailError){
         // all equipment list error -> go back to dashboard page
         return (
             <ErrorPage>
-                {equipListError}
+                {detailError}
                 <GoBack text={'Return Dashboard'} handleClick={handleGoToDashboardPage} />
             </ErrorPage>
         )
@@ -51,7 +84,6 @@ const EquipmentDetailPage = ({equipmentList, isLoading, equipListError, setEquip
             </ErrorPage>
         )
     }else {
-        const equip = equipmentList.find((equip)=> String(equip.id) === String(id));
         if (!equip) {
             // equipment not found -> go back to equipment List page
             return(
@@ -85,8 +117,8 @@ const EquipmentDetailPage = ({equipmentList, isLoading, equipListError, setEquip
                             <p> SERIAL NUMBER: {equip.serialNumber}</p>
                             <p> MOBILE: {equip.mobile ? "Mobile Equipment" : "Fixed Equipment"}</p>
                             <h3>LOCATION</h3>
-                            <p> DEPARTMENT: {equip.department}</p>
-                            <p> ROOM: {equip.room}</p>
+                            <p> DEPARTMENT: {equip.departmentName}</p>
+                            <p> ROOM: {equip.roomName}</p>
                             <img
                                 className="equipment-image"
                                 src={equipmentImages[equip.type] || "/images/default-equipment.png"}

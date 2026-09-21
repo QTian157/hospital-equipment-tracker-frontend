@@ -168,8 +168,6 @@ function App() {
                     path="/equipment/details/:id" 
                     element={
                       <EquipmentDetailPage 
-                        equipmentList={equipmentList}
-                        isLoading={isLoading}
                         equipListError={equipListError}
                         setEquipmentList={setEquipmentList}
                         maintenanceRecords={maintenanceRecords}
