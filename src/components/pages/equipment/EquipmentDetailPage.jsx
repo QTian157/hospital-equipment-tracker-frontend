@@ -11,12 +11,17 @@ import equipmentImages from "../../../mockData/equipmentImages.js";
 import { apiFetch } from "../../../api/apiClient";
 
 
-const EquipmentDetailPage = ({equipmentList, setEquipmentList, maintenanceRecords,maintenanceError})=>{
+const EquipmentDetailPage = ({equipmentList, setEquipmentList})=>{
 
     const {id} = useParams();
     const [equip, setEquip] = useState(null);
     const [detailLoading, setDetailLoading] = useState(true);
     const [detailError, setDetailError] = useState(null);
+
+    const [maintenanceRecords, setMaintenanceRecords] = useState([]);
+    const [maintenanceLoading, setMaintenanceLoading] = useState(true);
+    const [maintenanceError, setMaintenanceError] = useState(null);
+    
 
     const navigate = useNavigate();
 
@@ -64,9 +69,40 @@ const EquipmentDetailPage = ({equipmentList, setEquipmentList, maintenanceRecord
 
         fetchEquipmentDetail();
     }, [id]);
+
+    useEffect(() => {
+        const fetchMaintenanceRecords = async () => {
+            try {
+                const response = await apiFetch(
+                    `/api/equipment/${id}/maintenance-records`
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Unable to retrieve maintenance records (status ${response.status}).`
+                    );
+                }
+
+                const result = await response.json();
+
+                setMaintenanceRecords(result.data);
+                setMaintenanceError(null);
+
+            } catch (error) {
+                console.error(error.message);
+                setMaintenanceError(error.message);
+                setMaintenanceRecords([]);
+
+            } finally {
+                setMaintenanceLoading(false);
+            }
+        };
+
+        fetchMaintenanceRecords();
+    }, [id]);
     
 
-    if (detailLoading){
+    if (detailLoading || maintenanceLoading){
         return (<LoadingPage dataName={'equipmentDetail'}/>)
     }else if(detailError){
         // all equipment list error -> go back to dashboard page
@@ -93,8 +129,8 @@ const EquipmentDetailPage = ({equipmentList, setEquipmentList, maintenanceRecord
                 </ErrorPage>
             );
         } else {
-            const equipMaintenanceRecords = maintenanceRecords.filter((record) => String(record.equipmentId) === String(equip.id));
-            if (!equipMaintenanceRecords){
+            
+            if (!maintenanceRecords){
                 return (
                     <div>
                         <h2>No Records show up.</h2>
@@ -142,10 +178,10 @@ const EquipmentDetailPage = ({equipmentList, setEquipmentList, maintenanceRecord
                         }
                         <div className="maintenance-history">
                             <h2>Maintenance History</h2>
-                            {equipMaintenanceRecords.length === 0 ?(
+                            {maintenanceRecords.length === 0 ?(
                                 <p>No maintenance records found.</p>
                             ):(
-                                equipMaintenanceRecords.map((record)=>(
+                                maintenanceRecords.map((record)=>(
 
                                 <div className="maintenance-record" key={record.id}>
                                     <p>Maintenance Type: {record.maintenanceType}</p>
