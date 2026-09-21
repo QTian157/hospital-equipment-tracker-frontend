@@ -12,12 +12,14 @@ import EquipmentDetailPage from './components/pages/equipment/EquipmentDetailPag
 import EquipmentEditPage from './components/pages/equipment/EquipmentEditPage'
 import EquipmentAddPage from './components/pages/equipment/EquipmentAddPage'
 
-import Equipment from './classes/Equipment';
+
 import MaintenanceRecord from './classes/MaintenanceRecord';
 import ProtectedRoute from './auth/ProtectedRoute'
 
 import LoginPage from './components/pages/auth/LoginPage'
 import RegisterPage from './components/pages/auth/RegisterPage'
+
+import { apiFetch } from './api/apiClient'
 
 
 const parseJSONText = (rawText, dataName) => {
@@ -42,35 +44,20 @@ function App() {
   // callback: 1. cleanup function or 2. no return
   useEffect(()=>{
     const fetchEquipmentList = async ()=>{
-      let equipmentList = [];
       try{
         // define fetch()
-        const response = await fetch (
-          'https://docs.google.com/document/d/1gUxxzGJCf40UcwYjiNgeVergYB0qeN2wC6JaAb1nJjE/export?format=txt'
-        );
+        // if you see aync -> return Promise -> so need await to get result
+        const response = await apiFetch("/api/equipment");
+
         if (!response.ok) {
           throw new Error(`Unable to retrieve equipment list (status ${response.status}).`);
         }
         
-        // test the loading
-        const rawText = await response.text();
-        const data = parseJSONText(rawText, 'equipmentList');
-        
-        equipmentList = data.map((equip) => {
-          let newEquipment = new Equipment(
-            equip.id,
-            equip.name,
-            equip.assetTag,
-            equip.serialNumber,
-            equip.type,
-            equip.category,
-            equip.status,
-            equip.department,
-            equip.room,
-            equip.mobile,
-          );
-          return newEquipment
-        })
+        // convert response body from JSON to JavaScript object
+        const result = await response.json();
+
+        setEquipmentList(result.data);
+
 
         
         // Clear any previous error when fetch succeeds
@@ -78,9 +65,8 @@ function App() {
       }catch(error){
         console.error(error.message);
         setEquipListError(error.message);
+        setEquipmentList([]);
 
-      }finally{
-        setEquipmentList(equipmentList);
       }
     }
     // call fetch()

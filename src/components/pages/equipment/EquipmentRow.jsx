@@ -7,8 +7,8 @@ const EquipmentRow = ({equip})=>{
             <td>{equip.name}</td>
             <td>{equip.assetTag}</td>
             <td>{equip.status && <StatusBadge status={equip.status}/>}</td>
-            <td>{equip.department}</td>
-            <td>{equip.room}</td>
+            <td>{equip.departmentName}</td>
+            <td>{equip.roomName}</td>
             <td>{equip.mobile ? "Mobile Equipment" : "Fixed Equipment"}</td>
             <td>
                 <Link 
