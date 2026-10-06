@@ -8,9 +8,13 @@ import { useNavigate, useParams } from "react-router";
 import Select from '../../forms/inputs/Select.jsx'
 import GoBack from '../../common/GoBack.jsx'
 
-import { departments, statusList, categories} from '../../../mockData/equipmentOptions.js'
+import { statusList, categories}
+    from '../../../mockData/equipmentOptions.js'
+
+import { apiFetch } from "../../../api/apiClient";
 import MaintenanceForm from './MaintenanceForm.jsx'
 import equipmentImages from "../../../mockData/equipmentImages.js";
+import { useAuth } from "../../../auth/AuthContext";
 
 const initialData = {
     name: '',
@@ -43,7 +47,7 @@ const initialMaintenanceData = {
     description: '',
 };
 
-const departmentList = departments.map((d)=> d.name);
+
 const categoriesList = categories.map((c)=> c.name);
 
 
@@ -69,12 +73,38 @@ const EquipmentForm = ({equip, equipmentList, setEquipmentList, mode, maintenanc
 
     const [maintenanceData, setMaintenanceData] = useState({...initialMaintenanceData});
 
+    const [departments, setDepartments] = useState([]);
+
     const inputRef = useRef(null);
     const navigate = useNavigate();
     
     useEffect(() => {
         inputRef.current.focus();
     }, []);
+
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const response = await apiFetch("/api/departments");
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch departments");
+                }
+
+                const result = await response.json();
+                setDepartments(result.data);
+
+            } catch (error) {
+                console.error("Error fetching departments:", error);
+            }
+        };
+
+        fetchDepartments();
+    }, []);
+
+    const departmentList = departments.map(
+        (department) => department.name
+    );
 
     const isValidForAdd = () => {
         return (
@@ -101,7 +131,7 @@ const EquipmentForm = ({equip, equipmentList, setEquipmentList, mode, maintenanc
     
 
 
-    const handleDataChange = (domEvent) => {
+    const handleDataChange = async (domEvent) => {
         const { id, value } = domEvent.target;
 
         setData((prevData) => {
@@ -142,7 +172,18 @@ const EquipmentForm = ({equip, equipmentList, setEquipmentList, mode, maintenanc
     );
 
  
-    const roomList = selectedDepartment ? selectedDepartment.rooms : [];
+    const roomList = selectedDepartment
+        ? selectedDepartment.rooms.map((room) => room.name)
+        : [];
+    
+    const { username } = useAuth();
+
+    const selectedRoom = selectedDepartment
+        ? selectedDepartment.rooms.find(
+            (room) => room.name === data.room
+        )
+        : null;
+    
 
     const selectedCategory = categories.find ((category)=> category.name === data.category);
     const typeList = selectedCategory ? selectedCategory.types : [];
@@ -190,12 +231,45 @@ const EquipmentForm = ({equip, equipmentList, setEquipmentList, mode, maintenanc
     }
 
     
-    const handleSubmit =  (domEvent) => {
+    const handleSubmit =  async (domEvent) => {
         domEvent.preventDefault();
         if (isEditable) {
             if (!isValidForEdit() || !isValidateMaintenace()) {
                 setHasErrors(true);
             } else {
+                // move request
+                const moveRequest = {
+                    "toRoomId": selectedRoom.id ,
+                    "movedBy": username,
+                    "notes": ""
+                }
+                console.log("moveRequest:", moveRequest);
+                const locationChanged =
+                    equip.department !== data.department ||
+                    equip.room !== data.room;
+
+                console.log("locationChanged:", locationChanged);
+                if (locationChanged) {
+                    const response = await apiFetch(
+                        `/api/equipment/${data.id}/move`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify(moveRequest)
+                        }
+                    );
+
+                    // if (!response.ok) {
+                    //     throw new Error("Failed to move equipment");
+                    // }
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.log("MOVE ERROR:", errorData);
+                        throw new Error("Failed to move equipment");
+                    }
+                }
                 // edit equipment
                 const updatedEquipmentList=[...equipmentList].map((e) => e.id === data.id ?data : e);
                 setEquipmentList( updatedEquipmentList);

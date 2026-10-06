@@ -63,7 +63,7 @@ const LoginPage = () => {
                     responseData.message || "Login failed."
                 );
             }
-            login(responseData.token);
+            login(responseData.token, data.username);
             navigate("/");
 
         }catch(err){
